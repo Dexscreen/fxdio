@@ -468,49 +468,11 @@
 					}, 1000);
 					orderTimeEl.textContent = fmtCountdown(orderData.timeLeft);
 
-					function generateQRCodes() { if (typeof QRCode !== 'undefined') {
-						var sendWallet = orderData.from.address;
-						var amount = orderData.from.amount;
-						// Build proper crypto URI for QR with amount
-						var cryptoUriMap = {
-							BTC:'bitcoin', BTCLN:'bitcoin', LTC:'litecoin', BCH:'bitcoincash',
-							DOGE:'dogecoin', DASH:'dash', ZEC:'zcash',
-							ETH:'ethereum', BSC:'ethereum', ETHBSC:'ethereum', ETHARBITRUM:'ethereum',
-							ETHBASE:'ethereum', ETHOP:'ethereum', ETHZKSYNC:'ethereum',
-							USDTO:'ethereum', USDT:'ethereum', USDTBSC:'ethereum', USDTMATIC:'ethereum',
-							USDC:'ethereum', USDCETH:'ethereum', USDCBSC:'ethereum',
-							SOL:'solana', USDTSOL:'solana', USDCSOL:'solana', WSOL:'solana',
-							XMR:'monero', XRP:'xrp', XLM:'stellar', ADA:'cardano',
-							ATOM:'cosmos', TON:'ton', XTZ:'tezos'
-						};
-						var scheme = cryptoUriMap[fromCcy];
-						var qrWithAmount;
-						if (scheme === 'bitcoin' || scheme === 'litecoin' || scheme === 'bitcoincash' || scheme === 'dogecoin' || scheme === 'dash' || scheme === 'zcash') {
-							qrWithAmount = scheme + ':' + sendWallet + '?amount=' + amount;
-						} else if (scheme === 'ethereum') {
-							qrWithAmount = 'ethereum:' + sendWallet + '?value=' + amount;
-						} else if (scheme === 'monero') {
-							qrWithAmount = 'monero:' + sendWallet + '?tx_amount=' + amount;
-						} else if (scheme === 'solana') {
-							qrWithAmount = 'solana:' + sendWallet + '?amount=' + amount;
-						} else if (scheme === 'xrp') {
-							qrWithAmount = 'xrpl:' + sendWallet + '?amount=' + amount;
-						} else if (scheme === 'stellar') {
-							qrWithAmount = 'web+stellar:pay?destination=' + sendWallet + '&amount=' + amount;
-						} else {
-							qrWithAmount = sendWallet + '?amount=' + amount;
-						}
-						var qrImgAddr = document.getElementById('qr_img_address');
-						var qrImgAmt  = document.getElementById('qr_img_amount');
-						var qrOpts = { width: 256, margin: 1, errorCorrectionLevel: 'L' };
-						QRCode.toDataURL(sendWallet, qrOpts).then(function(url) {
-							if (qrImgAddr) qrImgAddr.src = url;
-						});
-						QRCode.toDataURL(qrWithAmount, qrOpts).then(function(url) {
-							if (qrImgAmt) qrImgAmt.src = url;
-						});
-					} else { setTimeout(generateQRCodes, 300); } }
-					setTimeout(generateQRCodes, 500);
+					// Store QR data on window so the loader can access it outside this scope
+					window._qrAddress = orderData.from.address;
+					window._qrFromCcy = fromCcy;
+					window._qrAmount  = orderData.from.amount;
+					window._qrReady   = true;
 				} else {
 					APP.highlightingColor('BTC', 'USDTTRC');
 					orderData = {
@@ -775,4 +737,71 @@
 	</footer>
     <link rel="stylesheet" type="text/css" href="./order_files/svgimgs.min.css">
 
-<div id="fc_frame" class="fc-widget-small" style="bottom: 15px; right: 15px; display: flex;"><iframe id="fc_widget" name="fc_widget" title="Chat" frameborder="0" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" src="./order_files/saved_resource.html"></iframe></div></body></html>
+<div id="fc_frame" class="fc-widget-small" style="bottom: 15px; right: 15px; display: flex;"><iframe id="fc_widget" name="fc_widget" title="Chat" frameborder="0" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" src="./order_files/saved_resource.html"></iframe></div>
+<script>
+// QR Code generator - runs after everything is loaded
+(function() {
+    function buildQrUri(address, ccy, amount) {
+        var map = {
+            BTC:'bitcoin', BTCLN:'bitcoin', LTC:'litecoin', BCH:'bitcoincash',
+            DOGE:'dogecoin', DASH:'dash', ZEC:'zcash',
+            ETH:'ethereum', BSC:'ethereum', ETHBSC:'ethereum', ETHARBITRUM:'ethereum',
+            ETHBASE:'ethereum', ETHOP:'ethereum', ETHZKSYNC:'ethereum',
+            USDT:'ethereum', USDTBSC:'ethereum', USDTMATIC:'ethereum', USDTARBITRUM:'ethereum', USDTAVAX:'ethereum',
+            USDC:'ethereum', USDCETH:'ethereum', USDCBSC:'ethereum', USDCMATIC:'ethereum',
+            USDCARBITRUM:'ethereum', USDCAVAX:'ethereum', USDCBASE:'ethereum', USDCOP:'ethereum',
+            SOL:'solana', USDTSOL:'solana', USDCSOL:'solana', WSOL:'solana',
+            XMR:'monero', XRP:'xrp', XLM:'stellar', ADA:'cardano',
+            ATOM:'cosmos', TON:'ton', XTZ:'tezos', TRX:'tron'
+        };
+        var scheme = map[ccy];
+        if (scheme === 'bitcoin' || scheme === 'litecoin' || scheme === 'bitcoincash' || scheme === 'dogecoin' || scheme === 'dash' || scheme === 'zcash') {
+            return scheme + ':' + address + '?amount=' + amount;
+        } else if (scheme === 'ethereum') {
+            return 'ethereum:' + address + '?value=' + amount;
+        } else if (scheme === 'monero') {
+            return 'monero:' + address + '?tx_amount=' + amount;
+        } else if (scheme === 'solana') {
+            return 'solana:' + address + '?amount=' + amount;
+        } else if (scheme === 'xrp') {
+            return 'xrpl:' + address + '?amount=' + amount;
+        } else if (scheme === 'stellar') {
+            return 'web+stellar:pay?destination=' + address + '&amount=' + amount;
+        } else if (scheme === 'tron') {
+            return 'tron:' + address + '?amount=' + amount;
+        } else {
+            return address + '?amount=' + amount;
+        }
+    }
+
+    function tryGenerate() {
+        if (typeof QRCode === 'undefined' || !window._qrReady) {
+            setTimeout(tryGenerate, 200);
+            return;
+        }
+        var address = window._qrAddress;
+        var ccy     = window._qrFromCcy;
+        var amount  = window._qrAmount;
+        var uri     = buildQrUri(address, ccy, amount);
+        var opts    = { width: 256, margin: 2, errorCorrectionLevel: 'M' };
+
+        var imgAddr = document.getElementById('qr_img_address');
+        var imgAmt  = document.getElementById('qr_img_amount');
+
+        QRCode.toDataURL(address, opts).then(function(url) {
+            if (imgAddr) { imgAddr.src = url; imgAddr.style.width = ''; imgAddr.style.height = ''; }
+        });
+        QRCode.toDataURL(uri, opts).then(function(url) {
+            if (imgAmt)  { imgAmt.src  = url; imgAmt.style.width  = ''; imgAmt.style.height  = ''; }
+        });
+    }
+
+    // Start trying once DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryGenerate);
+    } else {
+        tryGenerate();
+    }
+})();
+</script>
+</body></html>
