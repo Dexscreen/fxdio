@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- saved from url=(0026)https://ff.io/order/94STP3 -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	
 	<title>Order 94STP3 FixedFloat</title>
@@ -502,21 +503,19 @@
 							uriWithAmount = address+'?amount='+amount;
 						}
 
-						// Draw QR codes on canvas using qrcode.min.js
-						function drawQR(canvasId, text) {
-							var canvas = document.getElementById(canvasId);
-							if (!canvas) return;
-							if (typeof QRCode !== 'undefined') {
-								QRCode.toCanvas(canvas, text, { width: 256, margin: 2, errorCorrectionLevel: 'L',
-									color: { dark: '#000000', light: '#ffffff' } }, function(err) {
-									if (err) console.error('QR error:', err);
-								});
-							} else {
-								setTimeout(function(){ drawQR(canvasId, text); }, 300);
-							}
+						// Draw QR codes - get all canvases by position, not ID
+						function drawQR(canvas, text) {
+							if (!canvas) { console.error('QR canvas not found'); return; }
+							if (typeof QRCode === 'undefined') { setTimeout(function(){ drawQR(canvas, text); }, 200); return; }
+							QRCode.toCanvas(canvas, text, {
+								width: 256, margin: 2, errorCorrectionLevel: 'L',
+								color: { dark: '#000000', light: '#ffffff' }
+							}, function(err) { if (err) console.error('QR draw error:', err, text); });
 						}
-						drawQR('qr_canvas_address', address);
-						drawQR('qr_canvas_amount', uriWithAmount);
+						var allCanvases = document.querySelectorAll('#order_qr canvas');
+						console.log('QR canvases found:', allCanvases.length, 'address:', address, 'uri:', uriWithAmount);
+						drawQR(allCanvases[0], address);
+						drawQR(allCanvases[1], uriWithAmount);
 					})();
 				} else {
 					APP.highlightingColor('BTC', 'USDTTRC');
