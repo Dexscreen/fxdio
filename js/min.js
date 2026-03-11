@@ -15182,8 +15182,8 @@ APP = {
         var e = ~~(t / 60) - 60 * ~~(t / 3600);
         return e ? e + " min" : t % 60 + " sec"
     },
-    GeeCaptchaAdded: !1,
-    GeeCaptchaLoaded: !1,
+    GeeCaptchaAdded: !0,
+    GeeCaptchaLoaded: !0,
     GeeCaptcha: function(t, e) {
         function i() {
             return this
@@ -15449,10 +15449,12 @@ APP = {
                 }
             }
         };
-        APP.GeeCaptchaLoaded || (s.signin.btn.loading(s.signin.btn.attr("data-captcha-loading")),
-        s.signup.btn.loading(s.signup.btn.attr("data-captcha-loading")),
-        s.forgot.btn.loading(s.forgot.btn.attr("data-captcha-loading"))),
+        // captcha loading bypassed
+
         l.captcha = APP.GeeCaptcha(),
+        s.signin.btn.default(),
+        s.signup.btn.default(),
+        s.forgot.btn.default(),
         l.captcha.onInit(function() {
             s.signin.btn.default(),
             s.signup.btn.default(),
