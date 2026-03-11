@@ -377,6 +377,7 @@
 				if (orderIdFromUrl) {
 					try {
 						var raw = sessionStorage.getItem('ff_order_' + orderIdFromUrl);
+						if (!raw) raw = localStorage.getItem('ff_order_' + orderIdFromUrl);
 						if (raw) storedOrder = JSON.parse(raw);
 					} catch (e) {}
 				}
