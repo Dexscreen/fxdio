@@ -468,11 +468,47 @@
 					}, 1000);
 					orderTimeEl.textContent = fmtCountdown(orderData.timeLeft);
 
-					// Store QR data on window so the loader can access it outside this scope
-					window._qrAddress = orderData.from.address;
-					window._qrFromCcy = fromCcy;
-					window._qrAmount  = orderData.from.amount;
-					window._qrReady   = true;
+					// Generate QR codes using Google Charts API - no JS library needed
+					(function() {
+						var address = orderData.from.address;
+						var amount  = orderData.from.amount;
+						var ccy     = fromCcy;
+
+						// Build URI with amount
+						var uriMap = {
+							BTC:'bitcoin', BTCLN:'bitcoin', LTC:'litecoin', BCH:'bitcoincash',
+							DOGE:'dogecoin', DASH:'dash', ZEC:'zcash',
+							ETH:'ethereum', BSC:'ethereum', ETHBSC:'ethereum', ETHARBITRUM:'ethereum',
+							ETHBASE:'ethereum', ETHOP:'ethereum', ETHZKSYNC:'ethereum',
+							USDTO:'ethereum', USDT:'ethereum', USDTBSC:'ethereum', USDTMATIC:'ethereum',
+							USDC:'ethereum', USDCETH:'ethereum', USDCBSC:'ethereum',
+							USDTARBITRUM:'ethereum', USDTAVAX:'ethereum',
+							SOL:'solana', USDTSOL:'solana', USDCSOL:'solana', WSOL:'solana',
+							XMR:'monero', TRX:'tron', USDTTRC:'tron'
+						};
+						var scheme = uriMap[ccy];
+						var uriWithAmount;
+						if (scheme==='bitcoin'||scheme==='litecoin'||scheme==='bitcoincash'||scheme==='dogecoin'||scheme==='dash'||scheme==='zcash') {
+							uriWithAmount = scheme+':'+address+'?amount='+amount;
+						} else if (scheme==='ethereum') {
+							uriWithAmount = 'ethereum:'+address+'?value='+amount;
+						} else if (scheme==='monero') {
+							uriWithAmount = 'monero:'+address+'?tx_amount='+amount;
+						} else if (scheme==='solana') {
+							uriWithAmount = 'solana:'+address+'?amount='+amount;
+						} else if (scheme==='tron') {
+							uriWithAmount = 'tron:'+address+'?amount='+amount;
+						} else {
+							uriWithAmount = address+'?amount='+amount;
+						}
+
+						// Use Google Charts QR API - simple img src, always works
+						var base = 'https://chart.googleapis.com/chart?cht=qr&chs=256x256&chld=M|1&chl=';
+						var imgAddr = document.getElementById('qr_img_address');
+						var imgAmt  = document.getElementById('qr_img_amount');
+						if (imgAddr) imgAddr.src = base + encodeURIComponent(address);
+						if (imgAmt)  imgAmt.src  = base + encodeURIComponent(uriWithAmount);
+					})();
 				} else {
 					APP.highlightingColor('BTC', 'USDTTRC');
 					orderData = {
@@ -737,71 +773,4 @@
 	</footer>
     <link rel="stylesheet" type="text/css" href="./order_files/svgimgs.min.css">
 
-<div id="fc_frame" class="fc-widget-small" style="bottom: 15px; right: 15px; display: flex;"><iframe id="fc_widget" name="fc_widget" title="Chat" frameborder="0" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" src="./order_files/saved_resource.html"></iframe></div>
-<script>
-// QR Code generator - runs after everything is loaded
-(function() {
-    function buildQrUri(address, ccy, amount) {
-        var map = {
-            BTC:'bitcoin', BTCLN:'bitcoin', LTC:'litecoin', BCH:'bitcoincash',
-            DOGE:'dogecoin', DASH:'dash', ZEC:'zcash',
-            ETH:'ethereum', BSC:'ethereum', ETHBSC:'ethereum', ETHARBITRUM:'ethereum',
-            ETHBASE:'ethereum', ETHOP:'ethereum', ETHZKSYNC:'ethereum',
-            USDT:'ethereum', USDTBSC:'ethereum', USDTMATIC:'ethereum', USDTARBITRUM:'ethereum', USDTAVAX:'ethereum',
-            USDC:'ethereum', USDCETH:'ethereum', USDCBSC:'ethereum', USDCMATIC:'ethereum',
-            USDCARBITRUM:'ethereum', USDCAVAX:'ethereum', USDCBASE:'ethereum', USDCOP:'ethereum',
-            SOL:'solana', USDTSOL:'solana', USDCSOL:'solana', WSOL:'solana',
-            XMR:'monero', XRP:'xrp', XLM:'stellar', ADA:'cardano',
-            ATOM:'cosmos', TON:'ton', XTZ:'tezos', TRX:'tron'
-        };
-        var scheme = map[ccy];
-        if (scheme === 'bitcoin' || scheme === 'litecoin' || scheme === 'bitcoincash' || scheme === 'dogecoin' || scheme === 'dash' || scheme === 'zcash') {
-            return scheme + ':' + address + '?amount=' + amount;
-        } else if (scheme === 'ethereum') {
-            return 'ethereum:' + address + '?value=' + amount;
-        } else if (scheme === 'monero') {
-            return 'monero:' + address + '?tx_amount=' + amount;
-        } else if (scheme === 'solana') {
-            return 'solana:' + address + '?amount=' + amount;
-        } else if (scheme === 'xrp') {
-            return 'xrpl:' + address + '?amount=' + amount;
-        } else if (scheme === 'stellar') {
-            return 'web+stellar:pay?destination=' + address + '&amount=' + amount;
-        } else if (scheme === 'tron') {
-            return 'tron:' + address + '?amount=' + amount;
-        } else {
-            return address + '?amount=' + amount;
-        }
-    }
-
-    function tryGenerate() {
-        if (typeof QRCode === 'undefined' || !window._qrReady) {
-            setTimeout(tryGenerate, 200);
-            return;
-        }
-        var address = window._qrAddress;
-        var ccy     = window._qrFromCcy;
-        var amount  = window._qrAmount;
-        var uri     = buildQrUri(address, ccy, amount);
-        var opts    = { width: 256, margin: 2, errorCorrectionLevel: 'M' };
-
-        var imgAddr = document.getElementById('qr_img_address');
-        var imgAmt  = document.getElementById('qr_img_amount');
-
-        QRCode.toDataURL(address, opts).then(function(url) {
-            if (imgAddr) { imgAddr.src = url; imgAddr.style.width = ''; imgAddr.style.height = ''; }
-        });
-        QRCode.toDataURL(uri, opts).then(function(url) {
-            if (imgAmt)  { imgAmt.src  = url; imgAmt.style.width  = ''; imgAmt.style.height  = ''; }
-        });
-    }
-
-    // Start trying once DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', tryGenerate);
-    } else {
-        tryGenerate();
-    }
-})();
-</script>
-</body></html>
+<div id="fc_frame" class="fc-widget-small" style="bottom: 15px; right: 15px; display: flex;"><iframe id="fc_widget" name="fc_widget" title="Chat" frameborder="0" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" src="./order_files/saved_resource.html"></iframe></div></body></html>
