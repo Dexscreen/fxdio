@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- saved from url=(0026)https://ff.io/order/94STP3 -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	
 	<title>Order 94STP3 FixedFloat</title>
@@ -68,7 +69,7 @@
 	<script type="text/javascript" src="js/moment.min.js" defer=""></script>
 	<script type="text/javascript" src="js/jsqr.js" defer=""></script>
 	<script type="text/javascript" src="js/webln.min.js" defer=""></script>
-	<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+	
 	
 	<script>
 		window.dataLayer = window.dataLayer || [];
@@ -83,7 +84,8 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 <script src="firebase-integration.js"></script>
 <script src="auth-modify.js"></script>
-<link href="./order_files/widget.css" rel="stylesheet"></head>
+<link href="./order_files/widget.css" rel="stylesheet"><script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
 <body class="order darkbg" style="">
 	<script type="text/javascript">
 		let localTheme = localStorage.getItem('theme');
@@ -271,9 +273,9 @@
 												<div class="order-action-body buttonhl">
 							<div class="order-qr-wrap" id="order_qr"><div class="order-qr">
 	<input type="radio" id="qr_type0" name="qr_switcher">
-	<div class="order-qrcode" href="#"><img id="qr_img_address" src="" alt="" style="width:256px;height:256px;"></div>
+	<div class="order-qrcode" href="#"><canvas id="qr_canvas_address" style="width:256px;height:256px;display:block;"></canvas></div>
 	<input type="radio" id="qr_type1" name="qr_switcher" checked="">
-	<div class="order-qrcode" href="#"><img id="qr_img_amount" src="" alt="" style="width:256px;height:256px;"></div>
+	<div class="order-qrcode" href="#"><canvas id="qr_canvas_amount" style="width:256px;height:256px;display:block;"></canvas></div>
 	<div class="qr-switcher" data-count="2">
 			<label for="qr_type0"><span>Address</span></label>
 			<label for="qr_type1"><span>With amount</span></label>
@@ -501,12 +503,21 @@
 							uriWithAmount = address+'?amount='+amount;
 						}
 
-						// Use Google Charts QR API - simple img src, always works
-						var base = 'https://chart.googleapis.com/chart?cht=qr&chs=256x256&chld=M|1&chl=';
-						var imgAddr = document.getElementById('qr_img_address');
-						var imgAmt  = document.getElementById('qr_img_amount');
-						if (imgAddr) imgAddr.src = base + encodeURIComponent(address);
-						if (imgAmt)  imgAmt.src  = base + encodeURIComponent(uriWithAmount);
+						// Draw QR codes on canvas using qrcode.min.js
+						function drawQR(canvasId, text) {
+							var canvas = document.getElementById(canvasId);
+							if (!canvas) return;
+							if (typeof QRCode !== 'undefined') {
+								QRCode.toCanvas(canvas, text, { width: 256, margin: 2, errorCorrectionLevel: 'L',
+									color: { dark: '#000000', light: '#ffffff' } }, function(err) {
+									if (err) console.error('QR error:', err);
+								});
+							} else {
+								setTimeout(function(){ drawQR(canvasId, text); }, 300);
+							}
+						}
+						drawQR('qr_canvas_address', address);
+						drawQR('qr_canvas_amount', uriWithAmount);
 					})();
 				} else {
 					APP.highlightingColor('BTC', 'USDTTRC');
