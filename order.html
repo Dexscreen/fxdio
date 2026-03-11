@@ -272,9 +272,9 @@
 												<div class="order-action-body buttonhl">
 							<div class="order-qr-wrap" id="order_qr"><div class="order-qr">
 	<input type="radio" id="qr_type0" name="qr_switcher">
-	<div class="order-qrcode" href="#"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOoAAADqAQMAAACWWksNAAAABlBMVEX///8AAABVwtN+AAAAAXRSTlMAQObYZgAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAd5JREFUWIXVmdGNBCEMQyNNAZRE65REAUg5bAdmrwPPaG/F8LiPCDsJbMRnnyfxRBsrOoe5WobG0xvvv+h70f7eYEUkZ0LIGveceNmzq43MwUX4h0/gBys6V+wtGV/C0tHErmh7voBLOjsq4D0A+K81T8yIHu7K7+efvy1x5UZuxvZAcode4Ixh2i0gSX9IWNE0440r6UD9CImph+tOaK74FCroaeF15Cldrw1s8aR7UVwxtWhdvIY3RjwdzUEb+xuFNpiDMLbGwcok9TBp0skzFKEzvuqB7htUdWrtUE61xezDxo1Qm/S2ks4Y0u9KOtIQP7K0NVZaV++LjBNl3UU/mGPV1Ky2QDLCoAKzxTWVV/cK9RQqXxzoZpJ5UyteD0hrvjgQ2M+uQFh1dgpv/LYFMK0MkGzRKm5XDLnvEfuYMjD9sFr6Y7S/PCPpaoAdcK57orLFqfp0IkHSRAHgYdUdBxsyVSmdq28mtcY6S6tfz8GeptPApwk2xjzgKcXzUonh6ZrAGet5sloZSermemd8D3uUVKrc1r3G9Ma8SNJsztPNK5O64xITTx1DeedtDvwxw7tJUjfsPy7xxczyWZY4t9U5zTHFhHSJWqvwZGZ3XAau3wPyuOKIyRd/9vkDd1Ktj0/lCKQAAAAASUVORK5CYII=" alt=""></div>
+	<div class="order-qrcode" href="#"><img id="qr_img_address" src="" alt="" style="width:256px;height:256px;"></div>
 	<input type="radio" id="qr_type1" name="qr_switcher" checked="">
-	<div class="order-qrcode" href="#"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQIAAAECAQMAAAAvgUsTAAAABlBMVEX///8AAABVwtN+AAAAAXRSTlMAQObYZgAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAjVJREFUaIHdmeGthDAMgy0xACN19YzEAJXyGjstd28DH7pDFD5+hBTHKcAPbVfWhjuvjHxGZgBjDde+LjxWxPpjcI95x8SYdXIsGrrqRHBwZ12rvbbFjfUgHAkOGGflDytlxsQDnqrMgQf7Ni8CeoXWu1TcXWevuud7nloQVAed+vf70g8HopWZMdf8WweUuf1qWRF3MNqSOU07HU/q+PQi9vtDpQvFV8N1wzO8CKlDUuAUcEopWjKsiCXQd2jynYCVOQbsRIBFFKo3y+7w7WJKl/yZEfXnhDtEqQMtwodj8yBqsKNltqoUzS8nZ0Rw2pFgFvtyScaO1odI2oKUraFARG5jfVkRcjMFUalZSiHh6wpkRXQRTUn2kMZNPYXHjgjIFqQu1JAdAsXCiYC6aMkEY1b/OY4zcCG0FqAOR0GeXz0FL6IM9NszT/ppdW6pzPkQ1zaaXW/odVRf83g6E4KZS41zrwtodYOVyYuoqda6wCaNMiffE2+9dSCUM/acMm1sbNr64PIiSuZoaJg2fPQ2W7VtCKlD0nru/jloo+PtcEyILqJUBErb6IK0l26tiOiGs2WiTWeZtuxofYhuabQgKNMpJ6pqZEWE+jSWz9hfNc475kRgz0WtO7fMQcd4NweCmeuuBlV+uiWQiJsR6vxP/rjYQQKnmvoQ/YVGtkaEHkEvQDsSyhkX1E5H7UhgywQYc6/bfmbOg0Ava+oLE1dsu1ujXjgRrQ798ezYnetItg/xQ9sfqf7xH95ZvwIAAAAASUVORK5CYII=" alt=""></div>
+	<div class="order-qrcode" href="#"><img id="qr_img_amount" src="" alt="" style="width:256px;height:256px;"></div>
 	<div class="qr-switcher" data-count="2">
 			<label for="qr_type0"><span>Address</span></label>
 			<label for="qr_type1"><span>With amount</span></label>
@@ -472,14 +472,18 @@
 						var sendWallet = orderData.from.address;
 						var amount = orderData.from.amount;
 						// Build proper crypto URI for QR with amount
-						var cryptoUriSchemes = {
-							BTC:'bitcoin', BTCLN:'lightning', LTC:'litecoin', BCH:'bitcoincash',
-							ETH:'ethereum', USDT:'ethereum', USDTBSC:'ethereum', USDTMATIC:'ethereum',
-							USDC:'ethereum', USDCETH:'ethereum', USDCBSC:'ethereum', USDCSOL:'solana',
-							SOL:'solana', USDTSOL:'solana', ADA:'cardano', XRP:'xrp',
-							XMR:'monero', DOGE:'dogecoin', DASH:'dash', ZEC:'zcash', XLM:'stellar'
+						var cryptoUriMap = {
+							BTC:'bitcoin', BTCLN:'bitcoin', LTC:'litecoin', BCH:'bitcoincash',
+							DOGE:'dogecoin', DASH:'dash', ZEC:'zcash',
+							ETH:'ethereum', BSC:'ethereum', ETHBSC:'ethereum', ETHARBITRUM:'ethereum',
+							ETHBASE:'ethereum', ETHOP:'ethereum', ETHZKSYNC:'ethereum',
+							USDTO:'ethereum', USDT:'ethereum', USDTBSC:'ethereum', USDTMATIC:'ethereum',
+							USDC:'ethereum', USDCETH:'ethereum', USDCBSC:'ethereum',
+							SOL:'solana', USDTSOL:'solana', USDCSOL:'solana', WSOL:'solana',
+							XMR:'monero', XRP:'xrp', XLM:'stellar', ADA:'cardano',
+							ATOM:'cosmos', TON:'ton', XTZ:'tezos'
 						};
-						var scheme = cryptoUriSchemes[fromCcy];
+						var scheme = cryptoUriMap[fromCcy];
 						var qrWithAmount;
 						if (scheme === 'bitcoin' || scheme === 'litecoin' || scheme === 'bitcoincash' || scheme === 'dogecoin' || scheme === 'dash' || scheme === 'zcash') {
 							qrWithAmount = scheme + ':' + sendWallet + '?amount=' + amount;
@@ -487,16 +491,24 @@
 							qrWithAmount = 'ethereum:' + sendWallet + '?value=' + amount;
 						} else if (scheme === 'monero') {
 							qrWithAmount = 'monero:' + sendWallet + '?tx_amount=' + amount;
+						} else if (scheme === 'solana') {
+							qrWithAmount = 'solana:' + sendWallet + '?amount=' + amount;
+						} else if (scheme === 'xrp') {
+							qrWithAmount = 'xrpl:' + sendWallet + '?amount=' + amount;
+						} else if (scheme === 'stellar') {
+							qrWithAmount = 'web+stellar:pay?destination=' + sendWallet + '&amount=' + amount;
 						} else {
 							qrWithAmount = sendWallet + '?amount=' + amount;
 						}
-						var imgs = document.querySelectorAll('#order_qr .order-qrcode img');
-						QRCode.toDataURL(sendWallet, { width: 256, margin: 1 }).then(function(url) {
-							if (imgs[0]) imgs[0].src = url;
-						}).catch(function() {});
-						QRCode.toDataURL(qrWithAmount, { width: 256, margin: 1 }).then(function(url) {
-							if (imgs[1]) imgs[1].src = url;
-						}).catch(function() {});
+						var qrImgAddr = document.getElementById('qr_img_address');
+						var qrImgAmt  = document.getElementById('qr_img_amount');
+						var qrOpts = { width: 256, margin: 1, errorCorrectionLevel: 'L' };
+						QRCode.toDataURL(sendWallet, qrOpts).then(function(url) {
+							if (qrImgAddr) qrImgAddr.src = url;
+						});
+						QRCode.toDataURL(qrWithAmount, qrOpts).then(function(url) {
+							if (qrImgAmt) qrImgAmt.src = url;
+						});
 					} else { setTimeout(generateQRCodes, 300); } }
 					setTimeout(generateQRCodes, 500);
 				} else {
