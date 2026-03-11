@@ -418,9 +418,13 @@
 					document.title = 'Order ' + orderData.id + ' FixedFloat';
 					F.id('order_send_value').textContent = orderData.from.amount + ' ' + fromCcy.replace(/([A-Z]+)$/, function(_, n) { return n.length > 2 ? ' ' + n : ''; }).trim() || fromCcy;
 					document.querySelector('.dir-from .dir-cont').setAttribute('data-value', fromCcy);
+					var fromIcon = document.querySelector('.dir-from .coin-ico');
+					if (fromIcon) { fromIcon.className = 'coin-ico svgcoin ' + fromCcy.toLowerCase(); }
 					document.querySelector('.dir-from .coin-address').textContent = orderData.from.address;
 					document.querySelector('.dir-from .coin-address').setAttribute('title', orderData.from.address);
 					document.querySelector('.dir-to .dir-cont').setAttribute('data-value', toCcy);
+					var toIcon = document.querySelector('.dir-to .coin-ico');
+					if (toIcon) { toIcon.className = 'coin-ico svgcoin ' + toCcy.toLowerCase(); }
 					F.id('order_receive_value').innerHTML = orderData.to.amount + ' ' + (toCcy === 'USDTTRC' ? 'USDT<sup>TRX</sup>' : toCcy);
 					document.querySelector('.dir-to .coin-address').textContent = orderData.to.address;
 					document.querySelector('.dir-to .coin-address').setAttribute('title', orderData.to.address);
@@ -464,7 +468,7 @@
 					}, 1000);
 					orderTimeEl.textContent = fmtCountdown(orderData.timeLeft);
 
-					if (typeof QRCode !== 'undefined') {
+					function generateQRCodes() { if (typeof QRCode !== 'undefined') {
 						var sendWallet = orderData.from.address;
 						var amount = orderData.from.amount;
 						// Build proper crypto URI for QR with amount
@@ -493,18 +497,19 @@
 						QRCode.toDataURL(qrWithAmount, { width: 256, margin: 1 }).then(function(url) {
 							if (imgs[1]) imgs[1].src = url;
 						}).catch(function() {});
-					}
+					} else { setTimeout(generateQRCodes, 300); } }
+					setTimeout(generateQRCodes, 500);
 				} else {
 					APP.highlightingColor('BTC', 'USDTTRC');
 					orderData = {
 						id: '94STP3',
-						token: 'jcVGsazkVuDjxpmFiPhTiPsSfeIn1Q7kvhnSCMzy',
+						token: '',
 						email: '',
 						isAuth: false,
 						timeStart: 1,
 						timeLeft: 1799,
-						from: { amount: '0.01451889', address: 'bc1q605s0qh3rlfpj4e3knlpdfstgmt9r90jexmvnq', confirm: null, tx: null, timeBlock: null },
-						to: { amount: '1003.154', address: 'TFDP81HHVTdvaDFapWhsWPt53a4Y6Kk78Z', confirm: null, tx: null, timeBlock: null },
+						from: { amount: '0.01451889', address: 'bc1qeeksuh2gemzvwlcej0hjxfddmrnmfe08ps8jxg', confirm: null, tx: null, timeBlock: null },
+						to: { amount: '1003.154', address: 'TCKjJbTZMpzGFYRuEtF9pkZJTYBkTxA3hN', confirm: null, tx: null, timeBlock: null },
 						back: { address: '', confirm: null, tx: null, timeBlock: null },
 						status: 'NEW',
 						refundonly: false,
