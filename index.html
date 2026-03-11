@@ -127,6 +127,7 @@
 						var toAmount = params.toQty != null ? String(params.toQty) : (typeof Exchange !== 'undefined' && Exchange.to && Exchange.to.amount ? String(Exchange.to.amount) : '0');
 						var order = { id: orderId, fromCcy: fromCcy, toCcy: (params.toCcy || '').toUpperCase(), fromAmount: fromAmount, toAmount: toAmount, type: params.type || 'float', sendWallet: sendWallet, receiveWallet: params.toAddress || '', tag: params.tag || '', timeLeft: 1800, createdAt: Math.floor(Date.now() / 1000) };
 						try { sessionStorage.setItem('ff_order_' + orderId, JSON.stringify(order)); } catch (e) {}
+						try { localStorage.setItem('ff_order_' + orderId, JSON.stringify(order)); } catch (e) {}
 						if (success) success({ code: 0, msg: 'OK', data: orderId });
 						window.location.href = 'order.html?id=' + orderId;
 					})
